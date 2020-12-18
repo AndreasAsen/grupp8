@@ -18,7 +18,7 @@ Future<Photo> fetchRandomFeaturedPhoto() async {
 
 Future<List<Photo>> getImages() async {
   var response = await http.get(
-    'https://api.unsplash.com/photos/random?count=20',
+    'https://api.unsplash.com/photos/random?count=10',
     headers: {
       HttpHeaders.authorizationHeader: "Client-ID " + apiKey,
     },

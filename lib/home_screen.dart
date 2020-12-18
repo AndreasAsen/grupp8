@@ -13,33 +13,148 @@ final TextEditingController imageSearch = new TextEditingController();
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(255, 86, 75, 83),
-      appBar: _appBar(),
-      body: SafeArea(
-        child: Container(
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                _photoView(),
-                SizedBox(
-                  child: _searchImageTextField(),
-                  height: 60,
-                ),
-                Container(
-                  child: _photoListView(),
-                  height: 400,
-                  width: double.infinity,
-                )
-              ],
-            ),
+    return SafeArea(
+        child: Material(
+            child: CustomScrollView(
+      slivers: <Widget>[
+        SliverPersistentHeader(
+          delegate: MySliverAppBar(expandedHeight: 350),
+          pinned: true,
+        ),
+        SliverToBoxAdapter(
+          child: Container(
+            height: 200,
+            color: Colors.black,
           ),
+        )
+      ],
+    )));
+  }
+
+  Widget _photoListView() {
+    return FutureBuilder<List<Photo>>(
+        future: getImages(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            _listViewBuilder(snapshot.data);
+          }
+          return _listViewBuilder([]);
+        });
+  }
+
+  Widget _listViewBuilder(List<Photo> list) {
+    return ListView.builder(
+      itemCount: list == null ? 0 : list.length,
+      itemBuilder: (context, index) {
+        return Image.network(
+          list[index].photoUrl,
+          fit: BoxFit.cover,
+        );
+      },
+    );
+  }
+
+  Widget _testPhoto() {
+    return Container(
+      width: double.infinity,
+      height: 230,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: NetworkImage(
+              "https://images.pexels.com/photos/396547/pexels-photo-396547.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"),
+          fit: BoxFit.cover,
         ),
       ),
     );
   }
 
-  Widget _appBar() {
+  Widget _testPhoto2() {
+    return Container(
+      width: double.infinity,
+      height: 230,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: NetworkImage(
+              "https://images.unsplash.com/photo-1608228069492-3babaaba6f4c?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=934&q=80"),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+}
+
+class MySliverAppBar extends SliverPersistentHeaderDelegate {
+  final double expandedHeight;
+
+  MySliverAppBar({@required this.expandedHeight});
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Stack(
+      fit: StackFit.expand,
+      overflow: Overflow.visible,
+      children: [
+        Container(
+          child: Container(
+            width: double.infinity,
+            color: Color.fromARGB(255, 86, 75, 83),
+          ),
+        ),
+        Positioned(
+          top: -shrinkOffset,
+          child: IconButton(
+              icon: Icon(Icons.info, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => (AboutUs())),
+                );
+              }),
+        ),
+        Positioned(
+          top: 14 - shrinkOffset,
+          right: 90,
+          child: _logoText(),
+        ),
+        Positioned(
+          top: -shrinkOffset,
+          right: 0,
+          child: IconButton(
+              icon: Icon(Icons.person, color: Colors.white), onPressed: () {}),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              child: _searchImageTextField(),
+            ),
+          ],
+        ),
+        Positioned(
+          top: 50 - shrinkOffset,
+          width: MediaQuery.of(context).size.width,
+          child: Opacity(
+            opacity: (1 - shrinkOffset / expandedHeight),
+            child: Card(
+              child: _testPhoto(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  double get maxExtent => expandedHeight;
+
+  @override
+  double get minExtent => kToolbarHeight;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => true;
+
+  Widget _appBar(context) {
     return AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -71,10 +186,24 @@ class _HomeScreenState extends State<HomeScreen> {
         });
   }
 
+  Widget _testPhoto() {
+    return Container(
+      width: double.infinity,
+      height: 230,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: NetworkImage(
+              "https://images.pexels.com/photos/396547/pexels-photo-396547.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
   Widget _topImage(Photo photo) {
     return Container(
       width: double.infinity,
-      height: 210,
+      height: 220,
       decoration: BoxDecoration(
         image: DecorationImage(
             image: NetworkImage(photo.photoUrl), fit: BoxFit.cover),
@@ -107,33 +236,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _photoListView() {
-    return FutureBuilder<List<Photo>>(
-        future: getImages(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return _listViewBuilder(snapshot.data);
-          }
-          return _listViewBuilder([]);
-        });
-  }
-
-  Widget _listViewBuilder(List<Photo> list) {
-    return ListView.builder(
-      itemCount: list == null ? 0 : list.length,
-      itemBuilder: (context, index) {
-        return Image.network(
-          list[index].photoUrl,
-          fit: BoxFit.cover,
-        );
-      },
-    );
-  }
-}
-
-Widget _searchImageTextField() {
-  return Container(
-      margin: EdgeInsets.only(left: 1, right: 1, top: 10, bottom: 10),
+  Widget _searchImageTextField() {
+    return Container(
+      height: 40,
+      margin: EdgeInsets.only(bottom: 10, right: 10, left: 10),
       child: TextField(
         style: TextStyle(color: Colors.white),
         textAlignVertical: TextAlignVertical.bottom,
@@ -146,50 +252,24 @@ Widget _searchImageTextField() {
                 borderSide: BorderSide(color: Colors.white30, width: 2)),
             hintText: "Search..",
             hintStyle: TextStyle(color: Colors.white, fontSize: 20)),
-      ));
-}
+      ),
+    );
+  }
 
-// Widget _pictureGridView() {
-//   return GridView.count(
-//     crossAxisCount: 2,
-//     crossAxisSpacing: 10,
-//     mainAxisSpacing: 10,
-//     children: _listItem
-//         .map(
-//           (item) => GestureDetector(
-//             onTap: () {
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                     builder: (context) =>
-//                         (PictureView())), // Visar enbart en bild nu, som är förvald
-//               );
-//               print('You have pressed a picture');
-//             },
-//             child: Card(
-//               color: Colors.transparent,
-//               elevation: 0,
-//               child: Container(
-//                 decoration: BoxDecoration(
-//                   borderRadius: BorderRadius.circular(20),
-//                   image: DecorationImage(
-//                       image: AssetImage(item), fit: BoxFit.cover),
-//                 ),
-//                 child: Transform.translate(
-//                   offset: Offset(65, -65),
-//                   child: Container(
-//                     margin:
-//                         EdgeInsets.symmetric(horizontal: 64, vertical: 64),
-//                     child: IconButton(
-//                       icon: Icon(Icons.favorite_border, color: Colors.black),
-//                       onPressed: () {},
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         )
-//         .toList(),
-//   );
-// }
+  Widget _logoText() {
+    return Text(
+      'PLENTY OF PICS',
+      style: TextStyle(
+          // shadows: <Shadow>[
+          //   Shadow(
+          //     offset: Offset(1.0, 1.0),
+          //     blurRadius: 3.0,
+          //     color: Color.fromARGB(255, 0, 0, 0),
+          //   )
+          // ],
+          color: Color.fromARGB(255, 225, 255, 255),
+          fontSize: 22,
+          fontFamily: "Syncopate"),
+    );
+  }
+}
